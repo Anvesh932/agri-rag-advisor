@@ -1,0 +1,33 @@
+# Backend / RAG pipeline
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pydantic-settings>=2.2
+python-dotenv>=1.0
+
+# NLP & preprocessing
+spacy>=3.7
+nltk>=3.8
+sentence-transformers>=2.6
+
+# Retrieval
+faiss-cpu>=1.8
+rank-bm25>=0.2.2
+numpy>=1.26
+
+# LLM inference (Hugging Face)
+huggingface-hub>=0.23
+transformers>=4.40
+accelerate>=0.29
+bitsandbytes>=0.43 ; platform_system != "Windows"  # 8-bit quantization (CUDA required)
+
+# Translation
+# (mbart-large-50 runs through transformers; Google Translate is optional)
+google-cloud-translate>=3.15
+
+# Caching
+redis>=5.0
+
+# Evaluation
+evaluate>=0.4.1
+rouge-score>=0.1.2

@@ -1,0 +1,14 @@
+[
+  {
+    "question": "How can I improve the fertility of my soil without using chemical fertilizers?",
+    "reference": "Improve soil fertility by composting, manuring, crop rotation, and incorporating green manure or cover crops. Natural amendments like fish bone meal or kelp meal can also provide essential nutrients."
+  },
+  {
+    "question": "How can I reduce post-harvest losses of my rice crop during the monsoon?",
+    "reference": "Dry paddy to safe moisture levels before storage, use hermetic storage bags, elevate stacks on pallets, and thresh promptly to reduce monsoon post-harvest losses."
+  },
+  {
+    "question": "What is the best way to optimize irrigation water for wheat in the Indo-Gangetic Plain?",
+    "reference": "Use drip or sprinkler irrigation, schedule irrigations at critical growth stages (crown root, tillering, flowering), and apply mulch to reduce evaporation."
+  }
+]
