@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from .config import MODEL_REGISTRY, settings
 from .guardrails import apply_guardrails, check_output
 from .llm import SYSTEM_PROMPT, generate
+from .ollama import ensure_ollama
 from .retrieval import retriever
 from .translate import translate
 
@@ -19,6 +20,9 @@ async def lifespan(app: FastAPI):
     # Fail fast if the index hasn't been built yet (soft-fail: keep serving 503s per query)
     app.state.index_ready = (
         settings.data_index_dir / "faiss.index").exists()
+    # bring the local LLM server up if it isn't running (free Ollama provider)
+    app.state.ollama_ready = (settings.llm_provider != "ollama"
+                              or ensure_ollama(settings.ollama_base_url))
     yield
 
 
@@ -71,6 +75,7 @@ def _cache_set(key: str, value: str, ttl: int = 86400) -> None:
 @app.get("/health")
 def health():
     return {"ok": True, "index_ready": app.state.index_ready,
+            "ollama_ready": getattr(app.state, "ollama_ready", None),
             "models": list(MODEL_REGISTRY)}
 
 
