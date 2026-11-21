@@ -39,14 +39,34 @@ data/             raw/ AGRIS XML, processed/ chunks, index/ FAISS + BM25 artifac
 docs/             Source papers & dissertation (PDF/DOCX)
 ```
 
-## Quickstart
+## Quickstart (Windows)
+
+The easy way — from the project root in PowerShell:
+
+```powershell
+cd D:\Projects\agri-rag-advisor
+.\start.ps1        # opens backend + frontend in their own windows
+```
+
+Then open **http://localhost:5173**.
+
+Or manually:
+
+```powershell
+# Backend (from backend/ — auto-starts Ollama if it isn't running)
+cd D:\Projects\agri-rag-advisor\backend
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000
+
+# Frontend (second terminal)
+cd D:\Projects\agri-rag-advisor\frontend
+npm run dev
+```
 
 ### Backend
 
 ```bash
 cd backend
-python -m venv .venv
-.venv/Scripts/activate          # Windows (source .venv/bin/activate on Linux)
+source .venv/bin/activate        # Linux/macOS (Windows: .venv\Scripts\activate)
 pip install -r requirements.txt
 cp ../.env.example .env         # fill in HF token etc.
 
