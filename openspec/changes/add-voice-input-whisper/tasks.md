@@ -14,7 +14,7 @@
 - [x] 2.2 MediaRecorder capture → POST blob to `/api/transcribe` via existing proxy
 - [x] 2.3 Place transcript into the question textarea for review; never auto-submit
 - [x] 2.4 Inline error handling (permission denied, transcription failure); typing flow unaffected
-- [ ] 2.5 Manual verification against the running stack
+- [x] 2.5 Manual verification against the running stack
 
 ## 3. Multilingual quality pass
 
