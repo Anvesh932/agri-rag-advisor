@@ -94,6 +94,8 @@ docker compose up --build
 
 ## Evaluation
 
+Local (Ollama) numbers vs the dissertation benchmark: see `docs/eval-results.md`.
+
 ```bash
 python evaluation/evaluate.py --queries evaluation/sample_queries.json
 ```
