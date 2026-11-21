@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from .config import MODEL_REGISTRY, settings
 from .guardrails import apply_guardrails, check_output
-from .llm import SYSTEM_PROMPT, generate_remote, resolve_model
+from .llm import SYSTEM_PROMPT, generate
 from .retrieval import retriever
 from .translate import translate
 
@@ -88,7 +88,7 @@ def query(req: QueryRequest):
     # 3. generation (Redis-cached for frequent queries, e.g. sowing dates)
     key = _cache_key(req)
     cached = _cache_get(key)
-    answer_en = cached or generate_remote(resolve_model(req.model), SYSTEM_PROMPT, q_en, context)
+    answer_en = cached or generate(req.model, SYSTEM_PROMPT, q_en, context)
     if not cached:
         _cache_set(key, answer_en)
 

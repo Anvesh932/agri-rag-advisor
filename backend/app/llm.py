@@ -9,7 +9,7 @@ from functools import lru_cache
 
 import requests
 
-from .config import MODEL_REGISTRY, settings
+from .config import MODEL_REGISTRY, OLLAMA_DEFAULT, settings
 
 LOCAL_MODEL_CACHE: dict[str, object] = {}
 
@@ -17,6 +17,61 @@ LOCAL_MODEL_CACHE: dict[str, object] = {}
 def resolve_model(key_or_hf_id: str) -> str:
     reg = MODEL_REGISTRY.get(key_or_hf_id)
     return reg["hf_id"] if reg else key_or_hf_id
+
+
+def ollama_model_name(key_or_hf_id: str) -> str:
+    """Map a benchmark-model key (or HF id) to a local Ollama model name.
+
+    Models without an Ollama equivalent (falcon-7b, phi-2) fall back to the
+    default lightweight model instead of failing the request.
+    """
+    reg = MODEL_REGISTRY.get(key_or_hf_id)
+    if reg:
+        return reg.get("ollama", OLLAMA_DEFAULT)
+    if ":" in key_or_hf_id:          # already a direct Ollama model name
+        return key_or_hf_id
+    return OLLAMA_DEFAULT
+
+
+def generate_ollama(ollama_model: str, system_prompt: str, question: str,
+                    context: str, max_new_tokens: int = 512) -> str:
+    """Local generation through Ollama's /api/chat (free, no API key)."""
+    resp = requests.post(
+        settings.ollama_base_url.rstrip("/") + "/api/chat",
+        json={
+            "model": ollama_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user",
+                 "content": f"Context:\n{context}\n\nQuestion: {question}"},
+            ],
+            "stream": False,
+            "options": {
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "repeat_penalty": 1.2,
+                "num_predict": max_new_tokens,
+            },
+        },
+        timeout=300,
+    )
+    resp.raise_for_status()
+    return resp.json()["message"]["content"].strip()
+
+
+def generate(model_key: str, system_prompt: str, question: str, context: str,
+             provider: str | None = None, max_new_tokens: int = 512) -> str:
+    """Provider router. Default comes from settings.llm_provider.
+
+    "ollama" → local quantized GGUF models (free);
+    "hf"     → HF inference router with the exact benchmark models.
+    """
+    provider = provider or settings.llm_provider
+    if provider == "ollama":
+        return generate_ollama(ollama_model_name(model_key), system_prompt,
+                               question, context, max_new_tokens)
+    return generate_remote(resolve_model(model_key), system_prompt,
+                           question, context, max_new_tokens)
 
 
 def generate_remote(hf_model: str, system_prompt: str, question: str,
