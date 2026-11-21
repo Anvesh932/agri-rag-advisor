@@ -29,7 +29,9 @@ _special_re = re.compile(r"[^a-z0-9\s\u0900-\u097F\u0980-\u09FF\u0B80-\u0BFF]")
 def _nlp():
     import spacy
     try:
-        return spacy.load("en_core_web_sm")
+        # parser/NER are not needed for tokenization+lemmatization; disabling
+        # them roughly halves runtime on large corpora
+        return spacy.load("en_core_web_sm", exclude=["parser", "ner"])
     except OSError:  # model not downloaded
         return spacy.blank("en")
 
@@ -41,20 +43,30 @@ def clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def tokenize(text: str) -> list[str]:
-    """SpaCy tokenization + stop-word removal (with agricultural keep-list)."""
-    doc = _nlp()(clean_text(text))
+def _tokens_from_doc(doc) -> list[str]:
     toks = []
     for t in doc:
         if t.is_space:
             continue
-        if t.text in AGRI_KEEP:
+        if t.like_num or t.text in AGRI_KEEP:   # quantities matter in agri text
             toks.append(t.text)
         elif t.is_stop or t.text in _CUSTOM_STOP:
             continue
         else:
             toks.append(t.lemma_ if t.lemma_ else t.text)
     return toks
+
+
+def tokenize(text: str) -> list[str]:
+    """SpaCy tokenization + stop-word removal (with agricultural keep-list)."""
+    return _tokens_from_doc(_nlp()(clean_text(text)))
+
+
+def tokenize_batch(texts: list[str], batch_size: int = 128) -> list[list[str]]:
+    """Batched tokenization for corpora — ~10x faster than per-record calls."""
+    nlp = _nlp()
+    cleaned = (clean_text(t) for t in texts)
+    return [_tokens_from_doc(doc) for doc in nlp.pipe(cleaned, batch_size=batch_size)]
 
 
 def chunk_text(text: str, tokens: list[str] | None = None) -> list[str]:
