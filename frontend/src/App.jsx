@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { askQuestion } from './api.js'
+import { useState, useRef } from 'react'
+import { askQuestion, transcribe } from './api.js'
 
 const LANGS = [
   { code: 'en', label: 'English' },
@@ -23,6 +23,43 @@ export default function App() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [recState, setRecState] = useState('idle') // idle | recording | transcribing
+  const [micError, setMicError] = useState(null)
+  const recorderRef = useRef(null)
+  const chunksRef = useRef([])
+
+  async function startRecording() {
+    setMicError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const rec = new MediaRecorder(stream)
+      chunksRef.current = []
+      rec.ondataavailable = (e) => chunksRef.current.push(e.data)
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop())
+        setRecState('transcribing')
+        try {
+          const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' })
+          const { text } = await transcribe(blob)
+          setQuestion((q) => (q ? q + ' ' : '') + text)   // review before sending
+        } catch (err) {
+          setMicError('Transcription failed — please type your question.')
+        } finally {
+          setRecState('idle')
+        }
+      }
+      rec.start()
+      recorderRef.current = rec
+      setRecState('recording')
+    } catch (err) {
+      setMicError('Microphone not available — please allow access or type your question.')
+      setRecState('idle')
+    }
+  }
+
+  function stopRecording() {
+    recorderRef.current?.stop()
+  }
 
   async function submit(e) {
     e.preventDefault()
@@ -42,11 +79,26 @@ export default function App() {
       <p style={styles.sub}>Region-specific farming advice for South Asia · SDG 12</p>
 
       <form onSubmit={submit} style={styles.form}>
-        <textarea
-          value={question} onChange={(e) => setQuestion(e.target.value)}
-          placeholder="e.g. How can I improve my soil fertility without chemical fertilizers?"
-          rows={3} required style={styles.textarea}
-        />
+        <div style={{ position: 'relative' }}>
+          <textarea
+            value={question} onChange={(e) => setQuestion(e.target.value)}
+            placeholder={recState === 'recording' ? '🎙 Listening… speak now'
+              : 'e.g. How can I improve my soil fertility without chemical fertilizers?'}
+            rows={3} required disabled={recState === 'recording'} style={styles.textarea}
+          />
+          <button type="button"
+            onMouseDown={startRecording} onMouseUp={stopRecording}
+            onTouchStart={(e) => { e.preventDefault(); startRecording() }}
+            onTouchEnd={(e) => { e.preventDefault(); stopRecording() }}
+            onClick={() => recState === 'idle' && startRecording()}
+            title="Hold to record"
+            style={{ ...styles.mic,
+              background: recState === 'recording' ? '#b00020' : '#2e7d32' }}
+            disabled={recState === 'transcribing'}>
+            {recState === 'transcribing' ? '⏳' : recState === 'recording' ? '●' : '🎙'}
+          </button>
+        </div>
+        {micError && <p style={styles.error}>⚠ {micError}</p>}
         <div style={styles.row}>
           <select value={lang} onChange={(e) => setLang(e.target.value)} style={styles.select}>
             {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
@@ -95,7 +147,8 @@ const styles = {
   h1: { marginBottom: 4 },
   sub: { color: '#555', marginTop: 0 },
   form: { display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 },
-  textarea: { padding: 10, fontSize: 15, border: '1px solid #ccc', borderRadius: 8 },
+  textarea: { padding: 10, fontSize: 15, border: '1px solid #ccc', borderRadius: 8, width: '100%', boxSizing: 'border-box', paddingRight: 56 },
+  mic: { position: 'absolute', right: 8, top: 10, width: 40, height: 40, borderRadius: '50%', border: 0, color: '#fff', fontSize: 16, cursor: 'pointer' },
   row: { display: 'flex', gap: 8 },
   select: { padding: 8, borderRadius: 8, border: '1px solid #ccc', flex: 1 },
   button: { padding: '10px 16px', fontSize: 15, background: '#2e7d32', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' },

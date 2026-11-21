@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     default_lang: str = "en"
     google_translate_api_key: str = ""
 
+    # Voice input (local Whisper)
+    whisper_model: str = "small"          # tiny | base | small | medium
+    whisper_device: str = "cpu"           # "cpu" (safe default) or "cuda" (needs CUDA/cuDNN DLLs)
+    whisper_compute: str = "int8"         # int8 on CPU; "float16" for cuda
+    whisper_max_seconds: float = 60.0
+
     # Cache
     redis_url: str = "redis://localhost:6379/0"
 
@@ -51,7 +57,8 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-SUPPORTED_LANGS = {"en": "en_XX", "hi": "hi_IN", "bn": "bn_IN", "ta": "ta_IN"}
+# NLLB-200 language codes (en, hi, bn, ta farmer languages)
+SUPPORTED_LANGS = {"en": "eng_Latn", "hi": "hin_Deva", "bn": "ben_Beng", "ta": "tam_Taml"}
 
 # Model registry from the dissertation benchmark table
 MODEL_REGISTRY = {

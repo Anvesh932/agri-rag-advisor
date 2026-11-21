@@ -3,7 +3,7 @@ import hashlib
 import json
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -70,6 +70,29 @@ def _cache_set(key: str, value: str, ttl: int = 86400) -> None:
         r.set(f"ans:{key}", value, ex=ttl)
     except Exception:
         pass
+
+
+class TranscribeResponse(BaseModel):
+    text: str
+    language: str | None = None
+    duration: float = 0.0
+
+
+@app.post("/transcribe", response_model=TranscribeResponse)
+async def transcribe_endpoint(file: UploadFile = File(...)):
+    """Transcribe an audio recording locally (Whisper). No cloud calls."""
+    from .transcribe import transcribe, validate_upload
+    try:
+        data = await validate_upload(file)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    try:
+        return TranscribeResponse(**transcribe(data))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400,
+                            detail=f"Could not decode the audio: {e}")
 
 
 @app.get("/health")
