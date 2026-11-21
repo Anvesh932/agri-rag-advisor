@@ -24,10 +24,10 @@
 
 ## 4. Evaluation harness run
 
-- [ ] 4.1 Run `evaluation/evaluate.py` against the local Ollama models (llama3.2:3b and mistral:7b-instruct)
-- [ ] 4.2 Save results table into `docs/` and summarize in README
+- [x] 4.1 Run `evaluation/evaluate.py` against the local Ollama models (llama3.2:3b and mistral:7b-instruct)
+- [x] 4.2 Save results table into `docs/` and summarize in README
 
 ## 5. Docker
 
-- [ ] 5.1 Verify `docker compose build` succeeds for api + frontend + redis
-- [ ] 5.2 Verify `docker compose up` serves health endpoint and frontend
+- [x] 5.1 Verify `docker compose build` succeeds for api + frontend + redis
+- [x] 5.2 Verify `docker compose up` serves health endpoint and frontend
