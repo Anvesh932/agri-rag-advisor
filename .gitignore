@@ -25,3 +25,9 @@ data/index/*
 Thumbs.db
 .idea/
 .vscode/
+
+# Source documents stay local only (personal data + publisher copyright)
+docs/1166_paper.pdf
+docs/mp_report_anvesh.pdf
+docs/Dissertation_Final_Anvesh.docx
+docs/*.docx

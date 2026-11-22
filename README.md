@@ -5,7 +5,7 @@ built with Retrieval-Augmented Generation (RAG) and open LLMs, aligned with
 **UN SDG 12: Responsible Consumption and Production**.
 
 Based on the major project dissertation *"Integrating LLMs and RAG in Sustainable
-Agriculture"* (Anvesh Tewari, VIPS-TC, GGSIP University) — see `docs/`.
+Agriculture"* (Anvesh Tewari, VIPS-TC, GGSIP University) — see `docs/SOURCES.md`.
 
 ## Architecture
 
@@ -36,7 +36,7 @@ backend/          FastAPI service + RAG pipeline (Python)
 frontend/         React (Vite) multilingual chat UI
 evaluation/       BLEU-4 / ROUGE-L / Exact Match harness + sample queries
 data/             raw/ AGRIS XML, processed/ chunks, index/ FAISS + BM25 artifacts
-docs/             Source papers & dissertation (PDF/DOCX)
+docs/             Working docs: sources list, eval results, quality backlog, prep notes
 ```
 
 ## Quickstart (Windows)
