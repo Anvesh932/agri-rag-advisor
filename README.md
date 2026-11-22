@@ -100,7 +100,12 @@ Local (Ollama) numbers vs the dissertation benchmark: see `docs/eval-results.md`
 python evaluation/evaluate.py --queries evaluation/sample_queries.json
 ```
 
-Reference benchmarks from the dissertation (1,000-query test set):
+### Reported benchmarks from the dissertation (NOT measured by this repo)
+
+The table below is reproduced from the major-project dissertation and its
+published paper. It reflects their evaluation setup (1,000-query test set,
+tuned reference answers, unquantized models via HF). **This repository has not
+reproduced these numbers** — treat them as literature values.
 
 | Model               | BLEU-4 | ROUGE-L | EM   | Wh/query |
 |---------------------|--------|---------|------|----------|
@@ -109,7 +114,22 @@ Reference benchmarks from the dissertation (1,000-query test set):
 | Llama-3.2-3B        | 0.72   | 0.68    | 78%  | 2.5      |
 | Phi-2               | 0.70   | 0.66    | 76%  | 2.1      |
 
-Retrieval: Recall@5 = 85% (FAO test questions), ~120 ms mean latency with Redis caching.
+Retrieval (dissertation-reported): Recall@5 = 85% (FAO test questions),
+~120 ms mean latency with Redis caching.
+
+### Actually measured in this repo (local Ollama models)
+
+3 sample queries, single-sentence references — see `docs/eval-results.md` for
+the run and its interpretation:
+
+| Model                | BLEU-4 | ROUGE-L | Exact Match |
+|----------------------|--------|---------|-------------|
+| llama3.2:3b (Ollama) | 0.000  | 0.094   | 0.000       |
+| mistral:7b-instruct  | 0.000  | 0.065   | 0.000       |
+
+Near-zero single-reference BLEU against verbose generated answers is expected
+(metric artifact, not answer uselessness). To reproduce the dissertation's
+numbers you would need its full test set and the HF provider path.
 
 ## Environment variables
 
