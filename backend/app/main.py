@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from .config import MODEL_REGISTRY, settings
+from .glossary import apply_glossary
 from .guardrails import apply_guardrails, check_output
 from .llm import SYSTEM_PROMPT, generate
 from .ollama import ensure_ollama
@@ -120,8 +121,9 @@ def query(req: QueryRequest):
     if not cached:
         _cache_set(key, answer_en)
 
-    # 4. translate back to the farmer's language
+    # 4. translate back to the farmer's language, then de-code-mix domain terms
     answer = translate(answer_en, "en", req.lang)
+    answer = apply_glossary(answer, req.lang)
 
     return QueryResponse(
         answer=answer,

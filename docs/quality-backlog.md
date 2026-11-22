@@ -5,9 +5,10 @@ Tamil (ta) through the full pipeline (translate → FAISS+BM25 retrieval →
 llama3.2:3b → translate back), 2026-11-21. Raw request/response pairs live in
 `docs/quality/q1…q6.{txt,json}`.
 
-## Fixed during this pass
+## Fixed
 
 1. **Bengali retrieval poisoned by mbart (CRITICAL — FIXED)**
+   (see note below)
    mbart-large-50 translated "ধানের ফসল তোলার পরে ক্ষতি কমানোর উপায় কী?" (how to
    reduce post-harvest losses of paddy) as *"reduce the government's revenue
    after the headquarters collapse"*. Retrieval matched irrelevant papers and
@@ -16,12 +17,6 @@ llama3.2:3b → translate back), 2026-11-21. Raw request/response pairs live in
    languages now retrieve relevant sources and answer coherently.
 
 ## Open items (priority order)
-
-2. **Code-mixing in answers (MEDIUM)** — back-translation leaves English
-   technical terms untranslated inside Hindi/Tamil/Bengali answers
-   ("RAINFED AREAS", "Crop Rotation", "Organic Manure"). Low-literacy users may
-   not parse them. *Idea:* prompt the LLM to write plain-language terms, or
-   post-process a small domain glossary (compost→कम्पोस्ट/মালচ etc.).
 
 3. **Study-title back-translation noise (LOW-MEDIUM)** — the model cites paper
    titles verbatim inside the answer and NLLB mangles them ("GRAIN YILD",
@@ -46,3 +41,13 @@ llama3.2:3b → translate back), 2026-11-21. Raw request/response pairs live in
 7. **Bengali diacritic rendering (COSMETIC)** — some NLLB Bengali output
    carries zero-width joiner artifacts ("প ্ র"), likely font/normalization;
    verify on a real Bengali-capable display before fixing.
+
+---
+
+2. **Code-mixing in answers (MEDIUM — FIXED 2026-11-22)**
+   Back-translation left English technical terms untranslated inside
+   Hindi/Tamil/Bengali answers ("RAINFED AREAS", "Crop Rotation", "mulching").
+   **Fix:** domain glossary module (`app/glossary.py`) applied after
+   back-translation — 22 agri term patterns × 3 languages, longest-phrase-first,
+   case-insensitive, inflection-aware. TDD: 10 tests; live Hindi query verified
+   with zero English leftovers.
